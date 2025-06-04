@@ -34,6 +34,7 @@ export default class PluginState {
   // 错题本相关属性
   private wrongWords: Set<string> // 存储错误单词的名称
   private wrongWordsDict: Word[] // 错题本词典
+  private hasWrongInCurrentExercise: boolean // 追踪当前单词在本次练习中是否输错过
 
   private _wordList: {
     wordList: Word[]
@@ -66,6 +67,7 @@ export default class PluginState {
     this.hasWrong = false
     this.curInput = ''
     this.currentExerciseCount = 0
+    this.hasWrongInCurrentExercise = false // 初始化为false，表示当前单词还没有输错过
 
     this.chapterLength = getConfig('chapterLength')
     this._readOnlyMode = false
@@ -92,6 +94,7 @@ export default class PluginState {
     this._chapter = value
     this.order = 0
     this.currentExerciseCount = 0
+    this.hasWrongInCurrentExercise = false // 重置错误状态，切换章节后开始新的练习
     this._globalState.update('chapter', this._chapter)
     this._globalState.update('order', this.order)
   }
@@ -114,6 +117,7 @@ export default class PluginState {
     this._dictKey = value
     this.dict = idDictionaryMap[this._dictKey]
     this._globalState.update('dictKey', this._dictKey)
+    this.hasWrongInCurrentExercise = false // 重置错误状态，切换字典后开始新的练习
     this.loadDict()
   }
 
@@ -209,6 +213,9 @@ export default class PluginState {
   get currentInput(): string {
     return this.curInput
   }
+  get hasCurrentWordWrong(): boolean {
+    return this.hasWrongInCurrentExercise
+  }
   get highlightWrongColor(): string {
     return getConfig('highlightWrongColor')
   }
@@ -235,6 +242,11 @@ export default class PluginState {
   wrongInput() {
     this.hasWrong = true
     this.curInput = ''
+    
+    // 如果在错题本模式下，标记当前单词在本次练习中输错过
+    if (this._dictKey === 'wrong-book') {
+      this.hasWrongInCurrentExercise = true
+    }
     
     // 添加错误单词到错题本
     this.addWordToWrongBook(this.currentWord)
@@ -321,23 +333,29 @@ export default class PluginState {
     return this.wrongWords.size
   }
 
-  finishWord() {
+  finishWord(): boolean {
     this.curInput = ''
     this.currentExerciseCount += 1
+    let removedFromWrongBook = false
+    
     if (this.currentExerciseCount >= this.wordExerciseTime) {
-      // 如果在错题本模式下且单词不是空提示词，则从错题本移除该单词
-      if (this._dictKey === 'wrong-book' && this.currentWord.name !== 'empty') {
+      // 如果在错题本模式下且单词不是空提示词，并且当前单词在本次练习中没有输错过，则从错题本移除该单词
+      if (this._dictKey === 'wrong-book' && this.currentWord.name !== 'empty' && !this.hasWrongInCurrentExercise) {
         this.removeWordFromWrongBook(this.currentWord.name)
+        removedFromWrongBook = true
       }
       this.nextWord()
     }
     this.voiceLock = false
+    
+    return removedFromWrongBook
   }
 
   prevWord() {
     if (this.order > 0) {
       this.order -= 1
       this.currentExerciseCount = 0
+      this.hasWrongInCurrentExercise = false // 重置错误状态，新单词开始新的练习
     }
   }
 
@@ -359,6 +377,7 @@ export default class PluginState {
       this.order += 1
     }
     this.currentExerciseCount = 0
+    this.hasWrongInCurrentExercise = false // 重置错误状态，新单词开始新的练习
   }
   toggleDictName() {
     this.hideDictName = !this.hideDictName

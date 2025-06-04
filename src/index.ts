@@ -72,38 +72,36 @@ export function activate(context: vscode.ExtensionContext) {
       // 用户完成单词输入
       soundPlayer('success')
       
-      // 如果是在错题本模式下完成单词，显示鼓励信息
-      if (pluginState.dictKey === 'wrong-book' && pluginState.currentWord.name !== 'empty') {
+      const removedFromWrongBook = pluginState.finishWord()
+      
+      // 如果单词从错题本移除了，显示鼓励信息
+      if (removedFromWrongBook) {
         vscode.window.showInformationMessage(`太棒了！你掌握了错题: ${pluginState.currentWord.name}，已自动从错题本移除`)
       }
       
-      pluginState.finishWord()
       initializeBar()
     } else if (compareResult >= 0) {
       pluginState.wrongInput()
       inputBar.color = pluginState.highlightWrongColor
       soundPlayer('wrong')
-      
+
       // 显示正确单词的弹窗提示
       const currentWord = pluginState.currentWord
       const userInput = pluginState.currentInput
       const translation = currentWord.trans.join('; ')
-      
+
       vscode.window.showWarningMessage(
-        `❌ 输入错误！\n` +
-        `正确单词: ${currentWord.name}\n` +
-        `你的输入: ${userInput}\n` +
-        `中文释义: ${translation}`,
-        { modal: false }
+        `❌ 输入错误！\n` + `正确单词: ${currentWord.name}\n` + `你的输入: ${userInput}\n` + `中文释义: ${translation}`,
+        { modal: false },
       )
-      
-      // 显示错题本添加提示信息
+
+      // 显示错题本添加提示信息（仅非错题本模式）
       if (pluginState.dictKey !== 'wrong-book') {
         setTimeout(() => {
-          vscode.window.showInformationMessage(`单词 "${pluginState.currentWord.name}" 已添加到错题本`, { modal: false })
+          vscode.window.showInformationMessage(`单词 "${currentWord.name}" 已添加到错题本`, { modal: false })
         }, 1000) // 延迟1秒，避免与错误提示冲突
       }
-      
+
       setTimeout(() => {
         pluginState.clearWrong()
         inputBar.color = undefined
@@ -218,13 +216,13 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage('错题本为空')
           return
         }
-        
+
         const result = await vscode.window.showWarningMessage(
           `确定要清空错题本吗？这将删除 ${pluginState.wrongBookCount} 个单词`,
           '确定',
-          '取消'
+          '取消',
         )
-        
+
         if (result === '确定') {
           pluginState.clearWrongBook()
           vscode.window.showInformationMessage('错题本已清空')
@@ -238,7 +236,7 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage('仅在错题本模式下可以移除单词')
           return
         }
-        
+
         const currentWord = pluginState.currentWord
         if (currentWord) {
           pluginState.removeWordFromWrongBook(currentWord.name)
