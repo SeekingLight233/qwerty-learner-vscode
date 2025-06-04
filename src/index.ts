@@ -12,6 +12,8 @@ const PREV_WORD_COMMAND = 'qwerty-learner.prevWord'
 const NEXT_WORD_COMMAND = 'qwerty-learner.nextWord'
 const TOGGLE_TRANSLATION_COMMAND = 'qwerty-learner.toggleTranslation'
 const TOGGLE_DIC_NAME_COMMAND = 'qwerty-learner.toggleDicName'
+const CLEAR_WRONG_BOOK_COMMAND = 'qwerty-learner.clearWrongBook'
+const REMOVE_CURRENT_WORD_FROM_WRONG_BOOK_COMMAND = 'qwerty-learner.removeCurrentWordFromWrongBook'
 
 export function activate(context: vscode.ExtensionContext) {
   const pluginState = new PluginState(context)
@@ -69,12 +71,26 @@ export function activate(context: vscode.ExtensionContext) {
     if (compareResult === -2) {
       // 用户完成单词输入
       soundPlayer('success')
+      
+      // 如果是在错题本模式下完成单词，显示鼓励信息
+      if (pluginState.dictKey === 'wrong-book' && pluginState.currentWord.name !== 'empty') {
+        vscode.window.showInformationMessage(`太棒了！你掌握了错题: ${pluginState.currentWord.name}，已自动从错题本移除`)
+      }
+      
       pluginState.finishWord()
       initializeBar()
     } else if (compareResult >= 0) {
       pluginState.wrongInput()
       inputBar.color = pluginState.highlightWrongColor
       soundPlayer('wrong')
+      
+      // 显示错误提示信息
+      if (pluginState.dictKey !== 'wrong-book') {
+        setTimeout(() => {
+          vscode.window.showInformationMessage(`单词 "${pluginState.currentWord.name}" 已添加到错题本`, { modal: false })
+        }, 500)
+      }
+      
       setTimeout(() => {
         pluginState.clearWrong()
         inputBar.color = undefined
@@ -134,7 +150,12 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand('qwerty-learner.changeDict', async () => {
         const dictList: DictPickItem[] = []
         dictionaries.forEach((dict) => {
-          dictList.push({ label: dict.name, path: dict.url, detail: dict.description, key: dict.id })
+          let description = dict.description
+          // 为错题本显示实时单词数量
+          if (dict.id === 'wrong-book') {
+            description = `${dict.description} (${pluginState.wrongBookCount} 个单词)`
+          }
+          dictList.push({ label: dict.name, path: dict.url, detail: description, key: dict.id })
         })
         const inputDict = await vscode.window.showQuickPick(dictList, { placeHolder: `当前字典: ${pluginState.dict.name}` })
         if (inputDict !== undefined) {
@@ -177,6 +198,39 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage('章节循环模式已开启')
         } else {
           vscode.window.showInformationMessage('章节循环模式已关闭')
+        }
+      }),
+      vscode.commands.registerCommand(CLEAR_WRONG_BOOK_COMMAND, async () => {
+        if (pluginState.wrongBookCount === 0) {
+          vscode.window.showInformationMessage('错题本为空')
+          return
+        }
+        
+        const result = await vscode.window.showWarningMessage(
+          `确定要清空错题本吗？这将删除 ${pluginState.wrongBookCount} 个单词`,
+          '确定',
+          '取消'
+        )
+        
+        if (result === '确定') {
+          pluginState.clearWrongBook()
+          vscode.window.showInformationMessage('错题本已清空')
+          if (pluginState.dictKey === 'wrong-book') {
+            initializeBar()
+          }
+        }
+      }),
+      vscode.commands.registerCommand(REMOVE_CURRENT_WORD_FROM_WRONG_BOOK_COMMAND, () => {
+        if (pluginState.dictKey !== 'wrong-book') {
+          vscode.window.showInformationMessage('仅在错题本模式下可以移除单词')
+          return
+        }
+        
+        const currentWord = pluginState.currentWord
+        if (currentWord) {
+          pluginState.removeWordFromWrongBook(currentWord.name)
+          vscode.window.showInformationMessage(`已从错题本移除单词: ${currentWord.name}`)
+          initializeBar()
         }
       }),
     ],

@@ -2030,11 +2030,27 @@ const germanExam: DictionaryResource[] = [
   },
 ]
 
+// 错题本词典
+const wrongBookDict: DictionaryResource[] = [
+  {
+    id: 'wrong-book',
+    name: '我的错题本',
+    description: '收集输入错误的单词，专项练习',
+    category: '个人学习',
+    tags: ['错题本', '专项练习'],
+    url: '', // 错题本不需要文件路径，数据来自内存
+    length: 0, // 动态长度，会在运行时更新
+    language: 'en',
+    languageCategory: 'en',
+  },
+]
+
 /**
  * Built-in dictionaries in an array.
  * Why arrays? Because it keeps the order across browsers.
  */
 export const dictionaries: DictionaryResource[] = [
+  ...wrongBookDict,
   ...chinaExam,
   ...internationalExam,
   ...childrenEnglish,

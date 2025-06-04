@@ -69,6 +69,14 @@
       {
         "command": "qwerty-learner.toggleChapterCycleMode",
         "title": "Qwerty Learner Change chapter Cycle Mode"
+      },
+      {
+        "command": "qwerty-learner.clearWrongBook",
+        "title": "Qwerty Learner Clear Wrong Book"
+      },
+      {
+        "command": "qwerty-learner.removeCurrentWordFromWrongBook",
+        "title": "Qwerty Learner Remove Current Word from Wrong Book"
       }
     ],
     "keybindings": [

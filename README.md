@@ -53,7 +53,7 @@
 
 ### 章节、词典选择
 
-打开 VSCode 命令面板，通过 “Qwerty” 前缀过滤，即可发现插件内置的命令。
+打开 VSCode 命令面板，通过 "Qwerty" 前缀过滤，即可发现插件内置的命令。
 
 <div align=center>
 <img  src="docs/command.png"/>
@@ -65,10 +65,32 @@
 - Toggle Word Visibility 切换是否展示单词（默写模式）
 - Toggle Read Only Mode 开关只读模式
 - Toggle Chapter Cycle Mode 章节循环模式
+- Clear Wrong Book 清空错题本
+- Remove Current Word from Wrong Book 从错题本移除当前单词（仅在错题本模式下可用）
 
 命令面板快捷键  
 Mac: `cmd + shift + p`  
 Win: `ctrl + shift + p`
+
+### 🔥 错题本功能
+
+插件具有智能错题本功能，可以帮助你专项练习容易出错的单词：
+
+- **自动收集错误**：当你输入错误时，单词会自动添加到错题本
+- **专项练习**：选择"我的错题本"词典，专门练习错误单词
+- **智能管理**：
+  - 在错题本模式下掌握单词后，会显示鼓励信息
+  - **自动移除已掌握单词**：在错题本模式下，当单词达到设定的练习次数后，会自动从错题本移除
+  - 可以手动从错题本移除已掌握的单词
+  - 支持一键清空错题本
+- **持久化存储**：错题本数据会自动保存，重启VSCode后依然保留
+
+使用方法：
+1. 在任意词典中练习，输错的单词会自动加入错题本
+2. 通过命令面板选择"我的错题本"词典进行专项练习
+3. 在错题本模式下，掌握的单词会自动移除，无需手动操作
+4. 使用"Clear Wrong Book"命令可以清空错题本
+5. 在错题本模式下，使用"Remove Current Word from Wrong Book"可以手动移除当前单词
 
 ### 快捷配置
 
@@ -79,7 +101,7 @@ Win: `ctrl + shift + p`
 
 ### 进阶配置
 
-可以在设置面板查找关键字 “Qwerty” 修改设置
+可以在设置面板查找关键字 "Qwerty" 修改设置
 
 ```json
 "qwerty-learner.highlightWrongColor": {
@@ -161,6 +183,7 @@ Win: `ctrl + shift + p`
 
 ## 📕 词库列表
 
+- **我的错题本** - 收集输入错误的单词，专项练习
 - CET-4
 - CET-6
 - GMAT
