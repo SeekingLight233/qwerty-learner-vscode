@@ -25,6 +25,7 @@ const chinaExam: DictionaryResource[] = [
     length: 346,
     language: 'en',
     languageCategory: 'en',
+    chapterStartWords: ['abnormal', 'famed', 'popular', 'almost'],
   },
   {
     id: 'ieltsWang5',
@@ -36,6 +37,20 @@ const chinaExam: DictionaryResource[] = [
     length: 1569,
     language: 'en',
     languageCategory: 'en',
+    chapterStartWords: [
+      'a (great) variety of',
+      'bulletin board',
+      'contact lenses',
+      'emotion and mood',
+      'free for heating',
+      'hotel crime',
+      'living cost',
+      'on campus',
+      'range of English level',
+      'sky dome',
+      'theme garden',
+      'abbreviation',
+    ],
   },
   {
     id: 'ieltsWang11',

@@ -38,63 +38,100 @@ function validateChapterStartWords(dict) {
   return errors
 }
 
-// 从源码直接导入词典配置（编译前验证）
+// 解析TypeScript源码中的词典配置
+function parseDictionarySource(sourceContent) {
+  const dictionaries = []
+  
+  // 匹配词典对象的正则表达式
+  const dictRegex = /{\s*id:\s*['"`]([^'"`]+)['"`][\s\S]*?}/g
+  
+  let match
+  while ((match = dictRegex.exec(sourceContent)) !== null) {
+    const dictMatch = match[0]
+    const dictId = match[1]
+    
+    // 提取词典的各个属性
+    const nameMatch = dictMatch.match(/name:\s*['"`]([^'"`]+)['"`]/)
+    const urlMatch = dictMatch.match(/url:\s*['"`]([^'"`]+)['"`]/)
+    const chapterStartWordsMatch = dictMatch.match(/chapterStartWords:\s*\[([\s\S]*?)\]/)
+    
+    if (nameMatch && urlMatch) {
+      const dict = {
+        id: dictId,
+        name: nameMatch[1],
+        url: urlMatch[1],
+        chapterStartWords: null
+      }
+      
+      if (chapterStartWordsMatch) {
+        const arrayContent = chapterStartWordsMatch[1]
+        const words = arrayContent
+          .split(',')
+          .map(word => word.trim().replace(/['"]/g, ''))
+          .filter(word => word.length > 0)
+        
+        dict.chapterStartWords = words
+      }
+      
+      dictionaries.push(dict)
+    }
+  }
+  
+  return dictionaries
+}
+
+// 主验证逻辑
 try {
-  // 使用TypeScript编译器或直接解析源码
   console.log('🔍 开始验证词典的 chapterStartWords...')
   
   // 读取源码中的词典定义
   const dictionarySourcePath = path.join(__dirname, '..', 'src', 'resource', 'dictionary.ts')
   const sourceContent = fs.readFileSync(dictionarySourcePath, 'utf8')
   
-  // 简单的正则解析 chapterStartWords
-  const chapterStartWordsMatches = sourceContent.match(/chapterStartWords:\s*\[([\s\S]*?)\]/g)
+  // 解析词典配置
+  const dictionaries = parseDictionarySource(sourceContent)
+  const dictionariesWithChapters = dictionaries.filter(dict => dict.chapterStartWords && dict.chapterStartWords.length > 0)
   
-  if (!chapterStartWordsMatches || chapterStartWordsMatches.length === 0) {
+  if (dictionariesWithChapters.length === 0) {
     console.log('✅ 没有发现使用 chapterStartWords 的词典，验证通过')
     process.exit(0)
   }
   
-  console.log(`📋 发现 ${chapterStartWordsMatches.length} 个使用自定义章节的词典配置`)
+  console.log(`📋 发现 ${dictionariesWithChapters.length} 个使用自定义章节的词典配置`)
   
-  // 提取词典ID和对应的 chapterStartWords
   let totalErrors = 0
-  let validatedCount = 0
   
-  chapterStartWordsMatches.forEach((match, index) => {
-    try {
-      // 提取数组内容
-      const arrayContent = match.match(/\[([\s\S]*?)\]/)[1]
-      const words = arrayContent
-        .split(',')
-        .map(word => word.trim().replace(/['"]/g, ''))
-        .filter(word => word.length > 0)
-      
-      if (words.length > 0) {
-        console.log(`⚠️  检测到自定义章节配置 #${index + 1}: [${words.join(', ')}]`)
-        console.log(`   请手动验证这些单词是否存在于对应的词典文件中`)
-        validatedCount++
-      }
-    } catch (error) {
-      console.error(`❌ 解析自定义章节配置时出错: ${error.message}`)
-      totalErrors++
+  for (const dict of dictionariesWithChapters) {
+    console.log(`\n🔍 验证词典: ${dict.name} (${dict.id})`)
+    console.log(`   📝 自定义章节数: ${dict.chapterStartWords.length}`)
+    console.log(`   📄 词典文件: ${dict.url}`)
+    console.log(`   📚 章节首词: [${dict.chapterStartWords.join(', ')}]`)
+    
+    const errors = validateChapterStartWords(dict)
+    
+    if (errors.length > 0) {
+      console.error(`   ❌ 验证失败:`)
+      errors.forEach(error => console.error(`      ${error}`))
+      totalErrors += errors.length
+    } else {
+      console.log(`   ✅ 验证通过！所有章节首词都存在于词典文件中`)
     }
-  })
+  }
   
   console.log(`\n📊 验证完成:`)
-  console.log(`   - 检测到 ${validatedCount} 个自定义章节配置`)
-  console.log(`   - 发现 ${totalErrors} 个解析错误`)
+  console.log(`   - 验证了 ${dictionariesWithChapters.length} 个具有自定义章节的词典`)
+  console.log(`   - 发现 ${totalErrors} 个错误`)
   
   if (totalErrors > 0) {
-    console.error('\n❌ 验证过程中有错误，请检查配置')
+    console.error('\n❌ 验证失败，请修复上述错误后重新编译')
     process.exit(1)
   } else {
-    console.log('\n✅ 配置检测完成！')
-    console.log('💡 提示：如果你启用了 chapterStartWords，请确保这些单词确实存在于词典文件中')
+    console.log('\n✅ 所有词典验证通过！🎉')
     process.exit(0)
   }
   
 } catch (error) {
   console.error('❌ 验证过程出错:', error.message)
+  console.error(error.stack)
   process.exit(1)
 } 
