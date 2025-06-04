@@ -151,8 +151,9 @@ export default class PluginState {
       }
       
       wordList.forEach((word) => {
-        // API 字典会出现括号，但部分 vscode 插件会拦截括号的输入
-        word.name = word.name.replace('(', '').replace(')', '')
+        // API 字典会出现括号和单引号，但部分 vscode 插件会拦截这些字符的输入
+        // 移除括号和单引号，避免输入识别问题
+        word.name = word.name.replace(/[\(\)']/g, '')
       })
 
       const isRandom = getConfig('random')
