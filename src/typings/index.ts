@@ -35,7 +35,8 @@ export type DictionaryResource = {
   language: LanguageType
   languageCategory: LanguageCategoryType
   //override default pronunciation when not undefined
-  defaultPronIndex?: number
+  defaultPronIndex?: number,
+  chapterStartWords?: string[]
 }
 
 export type LanguageType = 'en' | 'romaji' | 'zh' | 'ja' | 'code' | 'de'

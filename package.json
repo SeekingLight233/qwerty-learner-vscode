@@ -32,7 +32,9 @@
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
     "vscode:prepublish": "webpack --mode production",
-    "compile": "webpack --mode development",
+    "compile": "webpack --mode development && node scripts/validate-dictionaries.js",
+    "build": "webpack --mode development",
+    "validate-dictionaries": "node scripts/validate-dictionaries.js",
     "watch": "webpack --mode development --watch",
     "test-compile": "tsc -p ./",
     "vsce:publish": "vsce package"

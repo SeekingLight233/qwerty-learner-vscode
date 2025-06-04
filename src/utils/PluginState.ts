@@ -1,7 +1,7 @@
 import { DictionaryResource } from '@/typings'
 import { VoiceType } from './../typings/index'
 import { idDictionaryMap } from './../resource/dictionary'
-import { compareWord, getConfig, getDictFile } from '.'
+import { compareWord, getConfig, getDictFile, getChapterWordsByStartWords } from '.'
 import * as vscode from 'vscode'
 import { Word } from '@/typings'
 
@@ -141,7 +141,13 @@ export default class PluginState {
         }
       } else {
         // 普通词典
-        wordList = this.dictWords.slice(this.chapter * this.chapterLength, (this.chapter + 1) * this.chapterLength)
+        if (this.dict.chapterStartWords && this.dict.chapterStartWords.length > 0) {
+          // 使用chapterStartWords进行章节切割
+          wordList = getChapterWordsByStartWords(this.dictWords, this.dict.chapterStartWords, this.chapter)
+        } else {
+          // 使用固定长度进行章节切割
+          wordList = this.dictWords.slice(this.chapter * this.chapterLength, (this.chapter + 1) * this.chapterLength)
+        }
       }
       
       wordList.forEach((word) => {
@@ -180,7 +186,13 @@ export default class PluginState {
       return Math.ceil(this.wrongWordsDict.length / this.chapterLength)
     } else {
       if (this.dictWords) {
-        return Math.ceil(this.dictWords.length / this.chapterLength)
+        if (this.dict.chapterStartWords && this.dict.chapterStartWords.length > 0) {
+          // 使用chapterStartWords时，章节数等于chapterStartWords的长度
+          return this.dict.chapterStartWords.length
+        } else {
+          // 使用固定长度时的原有逻辑
+          return Math.ceil(this.dictWords.length / this.chapterLength)
+        }
       } else {
         return 0
       }
@@ -353,7 +365,10 @@ export default class PluginState {
   }
   getInitialWordBarContent() {
     const name = this.hideDictName ? '' : this.dict.name
-    return `${name} chp.${this.chapter + 1}  ${this.order + 1}/${this.wordList.length}  ${this.wordVisibility ? this.currentWord.name : ''}`
+    const chapterInfo = this.dict.chapterStartWords && this.dict.chapterStartWords.length > 0 
+      ? `chp.${this.chapter + 1}(自定义)` 
+      : `chp.${this.chapter + 1}`
+    return `${name} ${chapterInfo}  ${this.order + 1}/${this.wordList.length}  ${this.wordVisibility ? this.currentWord.name : ''}`
   }
 
   getInitialInputBarContent() {

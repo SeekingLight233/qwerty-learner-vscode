@@ -92,6 +92,45 @@ Win: `ctrl + shift + p`
 4. 使用"Clear Wrong Book"命令可以清空错题本
 5. 在错题本模式下，使用"Remove Current Word from Wrong Book"可以手动移除当前单词
 
+### 📚 自定义章节功能
+
+插件支持为词典配置自定义章节，可以根据特定单词来切割章节，而不是固定的单词数量：
+
+#### 功能特性：
+- **灵活章节长度**：每章可以包含不同数量的单词
+- **语义化分组**：可以按主题、难度等进行分组
+- **编译时验证**：自动检查配置的首个单词是否存在于词典中
+
+#### 配置方法：
+在词典定义中添加 `chapterStartWords` 字段：
+
+```typescript
+{
+  id: 'custom-dict',
+  name: '自定义词典',
+  // ... 其他配置
+  chapterStartWords: ['abandon', 'campus', 'debate', 'factor', 'gallon']
+}
+```
+
+#### 工作原理：
+- 第1章：从 'abandon' 开始，到 'campus' 之前的所有单词
+- 第2章：从 'campus' 开始，到 'debate' 之前的所有单词
+- 第3章：从 'debate' 开始，到 'factor' 之前的所有单词
+- ...
+- 最后一章：从最后一个指定单词开始，到词典末尾
+
+#### 验证工具：
+运行以下命令验证配置：
+```bash
+yarn run validate-dictionaries
+```
+
+#### 注意事项：
+- 确保 `chapterStartWords` 中的单词确实存在于词典文件中
+- 状态栏会显示 `chp.X(自定义)` 来标识使用了自定义章节
+- 如果不配置 `chapterStartWords`，将使用默认的固定长度切割方式
+
 ### 快捷配置
 
 这里列出了用于启用/禁用章节循环模式的快捷键配置。章节循环模式默认情况下是禁用的。
