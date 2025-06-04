@@ -206,6 +206,9 @@ export default class PluginState {
   get compareResult(): number {
     return compareWord(this.currentWord.name, this.curInput)
   }
+  get currentInput(): string {
+    return this.curInput
+  }
   get highlightWrongColor(): string {
     return getConfig('highlightWrongColor')
   }

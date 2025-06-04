@@ -84,11 +84,24 @@ export function activate(context: vscode.ExtensionContext) {
       inputBar.color = pluginState.highlightWrongColor
       soundPlayer('wrong')
       
-      // 显示错误提示信息
+      // 显示正确单词的弹窗提示
+      const currentWord = pluginState.currentWord
+      const userInput = pluginState.currentInput
+      const translation = currentWord.trans.join('; ')
+      
+      vscode.window.showWarningMessage(
+        `❌ 输入错误！\n` +
+        `正确单词: ${currentWord.name}\n` +
+        `你的输入: ${userInput}\n` +
+        `中文释义: ${translation}`,
+        { modal: false }
+      )
+      
+      // 显示错题本添加提示信息
       if (pluginState.dictKey !== 'wrong-book') {
         setTimeout(() => {
           vscode.window.showInformationMessage(`单词 "${pluginState.currentWord.name}" 已添加到错题本`, { modal: false })
-        }, 500)
+        }, 1000) // 延迟1秒，避免与错误提示冲突
       }
       
       setTimeout(() => {
