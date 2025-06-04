@@ -7,9 +7,13 @@ import { DictionaryResource, Word } from '@/typings'
  * 错误返回错误索引，正确返回-2，未完成输入且无错误返回-1
  */
 export function compareWord(word: string, input: string) {
-  for (let i = 0; i < word.length; i++) {
-    if (typeof input[i] !== 'undefined') {
-      if (word[i] !== input[i]) {
+  // 转换为小写进行比较，忽略大小写
+  const lowerWord = word.toLowerCase()
+  const lowerInput = input.toLowerCase()
+  
+  for (let i = 0; i < lowerWord.length; i++) {
+    if (typeof lowerInput[i] !== 'undefined') {
+      if (lowerWord[i] !== lowerInput[i]) {
         return i
       }
     } else {
