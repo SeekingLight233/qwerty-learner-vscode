@@ -72,11 +72,11 @@ export function activate(context: vscode.ExtensionContext) {
       // 用户完成单词输入
       soundPlayer('success')
       
-      const removedFromWrongBook = pluginState.finishWord()
+      const removedWordName = pluginState.finishWord()
       
       // 如果单词从错题本移除了，显示鼓励信息
-      if (removedFromWrongBook) {
-        vscode.window.showInformationMessage(`太棒了！你掌握了错题: ${pluginState.currentWord.name}，已自动从错题本移除`)
+      if (removedWordName) {
+        vscode.window.showInformationMessage(`太棒了！你掌握了错题: ${removedWordName}，已自动从错题本移除`)
       }
       
       initializeBar()
