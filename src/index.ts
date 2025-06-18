@@ -72,14 +72,17 @@ export function activate(context: vscode.ExtensionContext) {
       // 用户完成单词输入
       soundPlayer('success')
       
-      const removedWordName = pluginState.finishWord()
+      const result = pluginState.finishWord()
       
       // 如果单词从错题本移除了，显示鼓励信息
-      if (removedWordName) {
-        vscode.window.showInformationMessage(`太棒了！你掌握了错题: ${removedWordName}，已自动从错题本移除`)
+      if (result.removedWordInfo) {
+        vscode.window.showInformationMessage(`太棒了！你掌握了错题: ${result.removedWordInfo.name} (${result.removedWordInfo.translation})，已自动从错题本移除`)
       }
       
-      initializeBar()
+      // 只有当finishWord没有内部切换单词时才调用initializeBar
+      if (result.hasNextWord) {
+        initializeBar()
+      }
     } else if (compareResult >= 0) {
       pluginState.wrongInput()
       inputBar.color = pluginState.highlightWrongColor
@@ -278,8 +281,10 @@ export function activate(context: vscode.ExtensionContext) {
   function setUpReadOnlyInterval() {
     if (!pluginState.readOnlyIntervalId) {
       pluginState.readOnlyIntervalId = setInterval(() => {
-        pluginState.finishWord()
-        initializeBar()
+        const result = pluginState.finishWord()
+        if (result.hasNextWord) {
+          initializeBar()
+        }
       }, pluginState.readOnlyInterval)
     }
   }

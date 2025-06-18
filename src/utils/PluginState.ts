@@ -333,22 +333,27 @@ export default class PluginState {
     return this.wrongWords.size
   }
 
-  finishWord(): string | null {
+  finishWord(): { removedWordInfo: { name: string; translation: string } | null; hasNextWord: boolean } {
     this.curInput = ''
     this.currentExerciseCount += 1
-    let removedWordName: string | null = null
+    let removedWordInfo: { name: string; translation: string } | null = null
+    let hasNextWord = false
     
     if (this.currentExerciseCount >= this.wordExerciseTime) {
       // 如果在错题本模式下且单词不是空提示词，并且当前单词在本次练习中没有输错过，则从错题本移除该单词
       if (this._dictKey === 'wrong-book' && this.currentWord.name !== 'empty' && !this.hasWrongInCurrentExercise) {
-        removedWordName = this.currentWord.name // 在切换单词前保存当前单词名称
+        removedWordInfo = {
+          name: this.currentWord.name,
+          translation: this.currentWord.trans.join('; ')
+        } // 在切换单词前保存当前单词信息
         this.removeWordFromWrongBook(this.currentWord.name)
       }
       this.nextWord()
+      hasNextWord = true
     }
     this.voiceLock = false
     
-    return removedWordName
+    return { removedWordInfo, hasNextWord }
   }
 
   prevWord() {
